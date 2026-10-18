@@ -547,6 +547,91 @@
             border: 1px solid var(--border);
         }
 
+        .nav-btn.grid-btn {
+            background: #eff6ff;
+            color: var(--primary);
+            border: 1px solid #bfdbfe;
+        }
+
+        .nav-btn.grid-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Question number grid (collapsible) */
+        .q-grid-panel {
+            display: none;
+            flex-shrink: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 0.65rem 0.75rem;
+            max-height: 180px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .q-grid-panel.show {
+            display: block;
+        }
+
+        .q-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.35rem;
+        }
+
+        .q-num-btn {
+            aspect-ratio: 1;
+            min-height: 32px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .q-num-btn:active {
+            transform: scale(0.94);
+        }
+
+        .q-num-btn.current {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .q-num-btn.answered {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .q-num-btn.answered.current {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .q-num-btn.wrong {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .q-num-btn.wrong.current {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
         /* Result overlay */
         .result-overlay {
             display: none;
@@ -663,11 +748,16 @@
 
         <div class="q-area" id="qArea"></div>
 
+        <div class="q-grid-panel" id="qGridPanel">
+            <div class="q-grid" id="qGrid"></div>
+        </div>
+
         <div class="nav-bar">
             <button class="nav-arrow" id="prevBtn" aria-label="Câu trước">‹</button>
             <div class="nav-center">
                 <div class="q-count"><span id="curNum">1</span> / <span id="totalNum">100</span></div>
                 <div class="nav-actions">
+                    <button class="nav-btn grid-btn" id="gridBtn" title="Danh sách câu">＃</button>
                     <button class="nav-btn check" id="checkBtn">Kết quả</button>
                     <button class="nav-btn reset" id="resetBtn">Làm lại</button>
                 </div>
@@ -1087,11 +1177,16 @@
             document.getElementById("scoreNum").textContent = st.correct;
             document.getElementById("searchInput").value = "";
             document.getElementById("lookupDrop").classList.remove("show");
+            // hide grid when entering topic
+            document.getElementById("qGridPanel").classList.remove("show");
+            document.getElementById("gridBtn").classList.remove("active");
             showQuestion();
         }
 
         function closeTopic() {
             if (window.speechSynthesis) window.speechSynthesis.cancel();
+            document.getElementById("qGridPanel").classList.remove("show");
+            document.getElementById("gridBtn").classList.remove("active");
             document.body.classList.remove("quiz-mode");
             currentTopic = null;
         }
@@ -1208,6 +1303,58 @@
             document.getElementById("nextBtn").disabled = st.current === st.questions.length - 1;
 
             document.getElementById("qArea").scrollTop = 0;
+            updateQGrid();
+        }
+
+        /* ===================== QUESTION GRID ===================== */
+        function buildQGrid() {
+            const st = state[currentTopic];
+            const grid = document.getElementById("qGrid");
+            if (!st || !st.questions) { grid.innerHTML = ""; return; }
+            grid.innerHTML = st.questions.map((_, i) =>
+                `<button type="button" class="q-num-btn" data-idx="${i}">${i + 1}</button>`
+            ).join("");
+            grid.querySelectorAll(".q-num-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    jumpToQ(+btn.dataset.idx);
+                });
+            });
+            updateQGrid();
+        }
+
+        function updateQGrid() {
+            const st = state[currentTopic];
+            if (!st || !st.questions) return;
+            document.querySelectorAll("#qGrid .q-num-btn").forEach(btn => {
+                const i = +btn.dataset.idx;
+                btn.classList.remove("current", "answered", "wrong");
+                if (i === st.current) btn.classList.add("current");
+                if (st.answers[i] !== null) {
+                    const ok = st.questions[i].options[st.answers[i]].correct;
+                    btn.classList.add(ok ? "answered" : "wrong");
+                }
+            });
+        }
+
+        function jumpToQ(idx) {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            const st = state[currentTopic];
+            if (idx < 0 || idx >= st.questions.length) return;
+            st.current = idx;
+            showQuestion();
+        }
+
+        function toggleQGrid() {
+            const panel = document.getElementById("qGridPanel");
+            const btn = document.getElementById("gridBtn");
+            const isOpen = panel.classList.toggle("show");
+            btn.classList.toggle("active", isOpen);
+            if (isOpen) {
+                buildQGrid();
+                // scroll current into view
+                const cur = panel.querySelector(".q-num-btn.current");
+                if (cur) cur.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            }
         }
 
         function selectOpt(i) {
@@ -1236,6 +1383,9 @@
             st.current = 0;
             st.correct = 0;
             document.getElementById("resultOverlay").classList.remove("show");
+            if (document.getElementById("qGridPanel").classList.contains("show")) {
+                buildQGrid();
+            }
             showQuestion();
         }
 
@@ -1294,6 +1444,7 @@
         document.getElementById("nextBtn").addEventListener("click", nextQ);
         document.getElementById("checkBtn").addEventListener("click", showResult);
         document.getElementById("resetBtn").addEventListener("click", resetTopic);
+        document.getElementById("gridBtn").addEventListener("click", toggleQGrid);
         document.getElementById("resultClose").addEventListener("click", () => {
             document.getElementById("resultOverlay").classList.remove("show");
         });
