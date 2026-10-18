@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VSTEP B1 – Từ vựng theo chủ đề</title>
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --primary-light: #3b82f6;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 14px;
+            --safe-bottom: env(safe-area-inset-bottom, 12px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.45;
+            overscroll-behavior: none;
+        }
+
+        /* ========== HOME SCREEN ========== */
+        #home {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 0 0 1.5rem;
+        }
+
+        .home-header {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            padding: 1.75rem 1.25rem 1.5rem;
+            text-align: center;
+        }
+
+        .home-header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .home-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .topic-list {
+            flex: 1;
+            padding: 1rem 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .topic-card {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.1rem;
+            cursor: pointer;
+            transition: transform 0.12s, box-shadow 0.12s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            text-align: left;
+            width: 100%;
+            font-family: inherit;
+            color: inherit;
+        }
+
+        .topic-card:active {
+            transform: scale(0.98);
+        }
+
+        .topic-card .icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #dbeafe;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .topic-card .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topic-card .info strong {
+            display: block;
+            font-size: 1.05rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .topic-card .info span {
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .topic-card .arrow {
+            color: var(--muted);
+            font-size: 1.2rem;
+        }
+
+        /* ========== QUIZ SCREEN ========== */
+        #quiz {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            height: 100dvh;
+            max-width: 560px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        #quiz.active {
+            display: flex;
+        }
+
+        .quiz-top {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0.7rem 0.85rem 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .quiz-top-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.15rem;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+
+        .back-btn:active {
+            background: #e2e8f0;
+        }
+
+        .topic-name {
+            flex: 1;
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .score-pill {
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: #dbeafe;
+            color: var(--primary);
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 0.6rem 0.85rem 0.6rem 2.3rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            outline: none;
+        }
+
+        .search-wrap input:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .search-wrap .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .lookup-drop {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 4px);
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+
+        .lookup-drop.show {
+            display: block;
+        }
+
+        .lookup-item {
+            padding: 0.55rem 0.85rem;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+        }
+
+        .lookup-item:last-child {
+            border-bottom: none;
+        }
+
+        .lookup-item:active {
+            background: #eff6ff;
+        }
+
+        .lookup-item .en {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .lookup-item .vi {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        /* Progress thin line */
+        .prog-line {
+            height: 3px;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .prog-line-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.2s;
+        }
+
+        /* Question area – center */
+        .q-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0.85rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .q-meta {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 0.45rem;
+        }
+
+        .q-text {
+            font-size: 1.15rem;
+            font-weight: 650;
+            margin-bottom: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .q-text strong {
+            color: var(--primary);
+        }
+
+        .opts {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .opt {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding: 0.8rem 0.9rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.12s, background 0.12s;
+        }
+
+        .opt:active {
+            transform: scale(0.99);
+        }
+
+        .opt.selected {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .opt.correct {
+            border-color: var(--success);
+            background: #dcfce7;
+        }
+
+        .opt.wrong {
+            border-color: var(--danger);
+            background: #fee2e2;
+        }
+
+        .opt .ltr {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .opt.selected .ltr {
+            background: var(--primary);
+            color: white;
+        }
+
+        .opt.correct .ltr {
+            background: var(--success);
+            color: white;
+        }
+
+        .opt.wrong .ltr {
+            background: var(--danger);
+            color: white;
+        }
+
+        .opt .txt {
+            flex: 1;
+            padding-top: 0.2rem;
+            font-size: 0.98rem;
+        }
+
+        .fb {
+            margin-top: 0.85rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            display: none;
+        }
+
+        .fb.show {
+            display: block;
+        }
+
+        .fb.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .fb.err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Bottom nav: arrows */
+        .nav-bar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem calc(0.65rem + var(--safe-bottom));
+            background: white;
+            border-top: 1px solid var(--border);
+            gap: 0.5rem;
+        }
+
+        .nav-arrow {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text);
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .nav-arrow:active {
+            background: #e2e8f0;
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .nav-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .nav-center .q-count {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .nav-btn {
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .nav-btn.check {
+            background: var(--success);
+            color: white;
+        }
+
+        .nav-btn.reset {
+            background: #f1f5f9;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        /* Result overlay */
+        .result-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 80;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .result-overlay.show {
+            display: flex;
+        }
+
+        .result-sheet {
+            background: white;
+            width: 100%;
+            border-radius: 18px 18px 0 0;
+            padding: 1.5rem 1.25rem calc(1.5rem + var(--safe-bottom));
+            text-align: center;
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .result-sheet .big {
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .result-sheet p {
+            margin-top: 0.4rem;
+            color: var(--muted);
+        }
+
+        .result-sheet .actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 1.25rem;
+        }
+
+        .result-sheet .actions button {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary) !important;
+        }
+
+        /* Hide home when quiz active */
+        body.quiz-mode #home {
+            display: none;
+        }
+
+        body.quiz-mode #quiz {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== HOME ========== -->
+    <div id="home">
+        <div class="home-header">
+            <h1>VSTEP B1 – Từ vựng</h1>
+            <p>Chọn chủ đề · ~100 câu · Anh ↔ Việt</p>
+        </div>
+        <div class="topic-list" id="topicList"></div>
+    </div>
+
+    <!-- ========== QUIZ ========== -->
+    <div id="quiz">
+        <div class="quiz-top">
+            <div class="quiz-top-row">
+                <button class="back-btn" id="backBtn" aria-label="Quay lại">←</button>
+                <div class="topic-name" id="topicName">Động từ</div>
+                <div class="score-pill">Đúng: <span id="scoreNum">0</span></div>
+            </div>
+            <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Tra nghĩa: develop, cải thiện..." autocomplete="off">
+                <div class="lookup-drop" id="lookupDrop"></div>
+            </div>
+        </div>
+        <div class="prog-line">
+            <div class="prog-line-fill" id="progFill"></div>
+        </div>
+
+        <div class="q-area" id="qArea"></div>
+
+        <div class="nav-bar">
+            <button class="nav-arrow" id="prevBtn" aria-label="Câu trước">‹</button>
+            <div class="nav-center">
+                <div class="q-count"><span id="curNum">1</span> / <span id="totalNum">100</span></div>
+                <div class="nav-actions">
+                    <button class="nav-btn check" id="checkBtn">Kết quả</button>
+                    <button class="nav-btn reset" id="resetBtn">Làm lại</button>
+                </div>
+            </div>
+            <button class="nav-arrow" id="nextBtn" aria-label="Câu sau">›</button>
+        </div>
+
+        <div class="result-overlay" id="resultOverlay">
+            <div class="result-sheet">
+                <div class="big" id="resultScore">0/100</div>
+                <p id="resultMsg"></p>
+                <div class="actions">
+                    <button class="btn-outline" id="resultClose">Đóng</button>
+                    <button class="btn-primary" id="resultRetry">Làm lại</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===================== DATA ===================== */
+        const DATA = {
+            verbs: {
+                title: "Động từ",
+                icon: "⚡",
+                items: [
+                    { en: "develop", vi: "phát triển" },
+                    { en: "improve", vi: "cải thiện" },
+                    { en: "widen", vi: "mở rộng" },
+                    { en: "discover", vi: "khám phá" },
+                    { en: "adjust", vi: "điều chỉnh" },
+                    { en: "change", vi: "thay đổi" },
+                    { en: "approach", vi: "tiếp cận" },
+                    { en: "experience", vi: "trải nghiệm" },
+                    { en: "limit", vi: "hạn chế" },
+                    { en: "join", vi: "tham gia" },
+                    { en: "choose", vi: "chọn" },
+                    { en: "reduce", vi: "giảm" },
+                    { en: "promote", vi: "thúc đẩy, khuyến khích" },
+                    { en: "enhance", vi: "nâng cao" },
+                    { en: "protect", vi: "bảo vệ" },
+                    { en: "maintain", vi: "duy trì" },
+                    { en: "have", vi: "có" },
+                    { en: "advance", vi: "nâng cao, tiến bộ" },
+                    { en: "explore", vi: "khám phá" },
+                    { en: "raise", vi: "tăng, nâng" },
+                    { en: "decrease", vi: "giảm" },
+                    { en: "increase", vi: "tăng" },
+                    { en: "save", vi: "tiết kiệm, bảo vệ, lưu giữ" },
+                    { en: "create", vi: "tạo ra, tạo nên" },
+                    { en: "enact", vi: "ban hành (luật, chính sách)" },
+                    { en: "connect", vi: "kết nối" },
+                    { en: "lessen", vi: "làm giảm" },
+                    { en: "eat", vi: "ăn" },
+                    { en: "achieve", vi: "đạt được" },
+                    { en: "succeed", vi: "thành công" },
+                    { en: "manage", vi: "quản lý" },
+                    { en: "solve", vi: "giải quyết" },
+                    { en: "overcome", vi: "vượt qua" },
+                    { en: "encourage", vi: "khuyến khích" },
+                    { en: "support", vi: "hỗ trợ" },
+                    { en: "prevent", vi: "ngăn chặn, phòng ngừa" },
+                    { en: "provide", vi: "cung cấp" },
+                    { en: "require", vi: "yêu cầu" },
+                    { en: "affect", vi: "ảnh hưởng" },
+                    { en: "influence", vi: "ảnh hưởng, tác động" },
+                    { en: "contribute", vi: "đóng góp" },
+                    { en: "participate", vi: "tham gia" },
+                    { en: "benefit", vi: "hưởng lợi, có lợi" },
+                    { en: "focus", vi: "tập trung" },
+                    { en: "balance", vi: "cân bằng" },
+                    { en: "organize", vi: "tổ chức" },
+                    { en: "prepare", vi: "chuẩn bị" },
+                    { en: "adapt", vi: "thích nghi" },
+                    { en: "eliminate", vi: "loại bỏ" },
+                    { en: "strengthen", vi: "tăng cường" }
+                ]
+            },
+            education: {
+                title: "1. Education",
+                icon: "📚",
+                items: [
+                    { en: "communication skills", vi: "kỹ năng giao tiếp" },
+                    { en: "the insight", vi: "sự hiểu biết sâu sắc" },
+                    { en: "study plan", vi: "kế hoạch học tập" },
+                    { en: "valuable inputs", vi: "những thông tin có giá trị" },
+                    { en: "self-study ability", vi: "khả năng tự học" },
+                    { en: "training courses", vi: "các khóa đào tạo" },
+                    { en: "laziness", vi: "sự lười biếng" },
+                    { en: "many languages", vi: "nhiều ngôn ngữ" },
+                    { en: "the mindset", vi: "tư duy, lối suy nghĩ" },
+                    { en: "future goals", vi: "mục tiêu tương lai" },
+                    { en: "many things around", vi: "nhiều thứ xung quanh" },
+                    { en: "academic burden", vi: "gánh nặng học tập" },
+                    { en: "knowledge", vi: "kiến thức" },
+                    { en: "memories", vi: "kỷ ức, ký niệm" },
+                    { en: "memory", vi: "trí nhớ" },
+                    { en: "studying abroad", vi: "du học nước ngoài" },
+                    { en: "critical thinking", vi: "tư duy phản biện" },
+                    { en: "lifelong learning", vi: "học tập suốt đời" },
+                    { en: "academic performance", vi: "thành tích học tập" },
+                    { en: "educational opportunities", vi: "cơ hội giáo dục" },
+                    { en: "curriculum", vi: "chương trình học" },
+                    { en: "qualification", vi: "bằng cấp, trình độ" },
+                    { en: "research skills", vi: "kỹ năng nghiên cứu" },
+                    { en: "concentration", vi: "sự tập trung" },
+                    { en: "motivation", vi: "động lực" },
+                    { en: "discipline", vi: "kỷ luật" },
+                    { en: "tuition fees", vi: "học phí" },
+                    { en: "scholarship", vi: "học bổng" },
+                    { en: "exam pressure", vi: "áp lực thi cử" },
+                    { en: "learning environment", vi: "môi trường học tập" },
+                    { en: "peer pressure", vi: "áp lực từ bạn bè" },
+                    { en: "time management", vi: "quản lý thời gian" },
+                    { en: "note-taking skills", vi: "kỹ năng ghi chép" },
+                    { en: "presentation skills", vi: "kỹ năng thuyết trình" },
+                    { en: "independent learning", vi: "học tập độc lập" },
+                    { en: "educational system", vi: "hệ thống giáo dục" }
+                ]
+            },
+            entertainment: {
+                title: "2. Entertainment",
+                icon: "🎭",
+                items: [
+                    { en: "the creative capacity", vi: "khả năng sáng tạo" },
+                    { en: "personal relationships", vi: "mối quan hệ cá nhân" },
+                    { en: "online time", vi: "thời gian trực tuyến" },
+                    { en: "the frame of mind", vi: "tâm trạng" },
+                    { en: "outdoor activities", vi: "hoạt động ngoài trời" },
+                    { en: "the positive mode", vi: "trạng thái tích cực" },
+                    { en: "confidence", vi: "sự tự tin" },
+                    { en: "connections with the community", vi: "kết nối với cộng đồng" },
+                    { en: "social interaction", vi: "tương tác xã hội" },
+                    { en: "different cultures and traditions", vi: "văn hóa và truyền thống khác nhau" },
+                    { en: "a lot of emotion", vi: "nhiều cảm xúc" },
+                    { en: "tension", vi: "sự căng thẳng" },
+                    { en: "happiness", vi: "niềm hạnh phúc" },
+                    { en: "historic monuments", vi: "di tích lịch sử" },
+                    { en: "leisure activities", vi: "hoạt động giải trí" },
+                    { en: "cultural exchange", vi: "giao lưu văn hóa" },
+                    { en: "social media", vi: "mạng xã hội" },
+                    { en: "screen time", vi: "thời gian dùng màn hình" },
+                    { en: "hobbies", vi: "sở thích" },
+                    { en: "relaxation", vi: "sự thư giãn" },
+                    { en: "stress relief", vi: "giảm stress" },
+                    { en: "team spirit", vi: "tinh thần đồng đội" },
+                    { en: "artistic expression", vi: "biểu đạt nghệ thuật" },
+                    { en: "entertainment industry", vi: "ngành giải trí" },
+                    { en: "virtual reality", vi: "thực tế ảo" },
+                    { en: "live performance", vi: "biểu diễn trực tiếp" },
+                    { en: "social gathering", vi: "buổi tụ họp" },
+                    { en: "mental well-being", vi: "sức khỏe tinh thần" },
+                    { en: "work-life balance", vi: "cân bằng công việc – cuộc sống" },
+                    { en: "digital detox", vi: "cai nghiện kỹ thuật số" },
+                    { en: "creative outlets", vi: "cách thể hiện sáng tạo" },
+                    { en: "community events", vi: "sự kiện cộng đồng" },
+                    { en: "cultural heritage", vi: "di sản văn hóa" },
+                    { en: "emotional intelligence", vi: "trí tuệ cảm xúc" }
+                ]
+            },
+            working: {
+                title: "3. Working",
+                icon: "💼",
+                items: [
+                    { en: "social skills", vi: "kỹ năng xã hội" },
+                    { en: "a career path", vi: "con đường sự nghiệp" },
+                    { en: "working methods", vi: "phương pháp làm việc" },
+                    { en: "workplace challenges", vi: "thách thức nơi công sở" },
+                    { en: "many fields", vi: "nhiều lĩnh vực" },
+                    { en: "practical experiences", vi: "kinh nghiệm thực tế" },
+                    { en: "hardships", vi: "những khó khăn" },
+                    { en: "work-life balance", vi: "cân bằng công việc – cuộc sống" },
+                    { en: "success", vi: "thành công" },
+                    { en: "the work duration", vi: "thời gian làm việc" },
+                    { en: "job promotions", vi: "thăng tiến công việc" },
+                    { en: "prospects", vi: "triển vọng" },
+                    { en: "stepping stone", vi: "bệ phóng sự nghiệp" },
+                    { en: "management skills", vi: "kỹ năng quản lý" },
+                    { en: "teamwork", vi: "làm việc nhóm" },
+                    { en: "leadership", vi: "khả năng lãnh đạo" },
+                    { en: "deadline", vi: "hạn chót" },
+                    { en: "workload", vi: "khối lượng công việc" },
+                    { en: "professional development", vi: "phát triển chuyên môn" },
+                    { en: "job satisfaction", vi: "sự hài lòng với công việc" },
+                    { en: "career advancement", vi: "thăng tiến sự nghiệp" },
+                    { en: "remote work", vi: "làm việc từ xa" },
+                    { en: "flexible working hours", vi: "giờ làm linh hoạt" },
+                    { en: "workplace culture", vi: "văn hóa nơi làm việc" },
+                    { en: "burnout", vi: "kiệt sức nghề nghiệp" },
+                    { en: "productivity", vi: "năng suất" },
+                    { en: "problem-solving skills", vi: "kỹ năng giải quyết vấn đề" },
+                    { en: "interpersonal skills", vi: "kỹ năng giao tiếp cá nhân" },
+                    { en: "career goals", vi: "mục tiêu sự nghiệp" },
+                    { en: "job security", vi: "ổn định công việc" },
+                    { en: "performance review", vi: "đánh giá hiệu suất" },
+                    { en: "networking", vi: "xây dựng mạng lưới quan hệ" },
+                    { en: "multitasking", vi: "làm nhiều việc cùng lúc" },
+                    { en: "work ethic", vi: "đạo đức nghề nghiệp" },
+                    { en: "promotion opportunity", vi: "cơ hội thăng tiến" }
+                ]
+            },
+            environment: {
+                title: "4. Environment",
+                icon: "🌿",
+                items: [
+                    { en: "natural resources", vi: "tài nguyên thiên nhiên" },
+                    { en: "the beauty of nature", vi: "vẻ đẹp thiên nhiên" },
+                    { en: "the living environment", vi: "môi trường sống" },
+                    { en: "clean surroundings", vi: "môi trường sạch sẽ xung quanh" },
+                    { en: "pollution", vi: "sự ô nhiễm" },
+                    { en: "organizations", vi: "các tổ chức" },
+                    { en: "recycling", vi: "tái chế" },
+                    { en: "biodiversity", vi: "đa dạng sinh học" },
+                    { en: "the pure atmosphere", vi: "bầu không khí trong lành" },
+                    { en: "more airy space", vi: "không gian thoáng mát hơn" },
+                    { en: "emissions", vi: "khí thải" },
+                    { en: "awareness", vi: "nhận thức" },
+                    { en: "plastic waste", vi: "rác thải nhựa" },
+                    { en: "laws / policies", vi: "luật / chính sách" },
+                    { en: "climate change", vi: "biến đổi khí hậu" },
+                    { en: "global warming", vi: "nóng lên toàn cầu" },
+                    { en: "deforestation", vi: "phá rừng" },
+                    { en: "renewable energy", vi: "năng lượng tái tạo" },
+                    { en: "sustainable development", vi: "phát triển bền vững" },
+                    { en: "carbon footprint", vi: "dấu chân carbon" },
+                    { en: "waste management", vi: "quản lý chất thải" },
+                    { en: "conservation", vi: "bảo tồn" },
+                    { en: "ecosystem", vi: "hệ sinh thái" },
+                    { en: "air quality", vi: "chất lượng không khí" },
+                    { en: "water pollution", vi: "ô nhiễm nước" },
+                    { en: "environmental protection", vi: "bảo vệ môi trường" },
+                    { en: "green energy", vi: "năng lượng xanh" },
+                    { en: "reduce, reuse, recycle", vi: "giảm thiểu, tái sử dụng, tái chế" },
+                    { en: "wildlife", vi: "động vật hoang dã" },
+                    { en: "habitat destruction", vi: "phá hủy môi trường sống" },
+                    { en: "eco-friendly", vi: "thân thiện môi trường" },
+                    { en: "public transport", vi: "giao thông công cộng" },
+                    { en: "energy consumption", vi: "tiêu thụ năng lượng" },
+                    { en: "environmental awareness", vi: "nhận thức về môi trường" }
+                ]
+            },
+            finance: {
+                title: "5. Finance",
+                icon: "💰",
+                items: [
+                    { en: "the wage and income", vi: "tiền lương và thu nhập" },
+                    { en: "the budget", vi: "ngân sách" },
+                    { en: "financial pressure", vi: "áp lực tài chính" },
+                    { en: "prospective customers", vi: "khách hàng tiềm năng" },
+                    { en: "investment", vi: "đầu tư" },
+                    { en: "a strong foundation", vi: "nền tảng vững chắc" },
+                    { en: "a worthy life", vi: "cuộc sống xứng đáng" },
+                    { en: "potential savings", vi: "tiết kiệm tiềm năng" },
+                    { en: "the quality of life", vi: "chất lượng cuộc sống" },
+                    { en: "difficulties", vi: "những khó khăn" },
+                    { en: "products and services", vi: "sản phẩm và dịch vụ" },
+                    { en: "living standards", vi: "mức sống" },
+                    { en: "financial literacy", vi: "kiến thức tài chính" },
+                    { en: "saving habits", vi: "thói quen tiết kiệm" },
+                    { en: "debt", vi: "nợ" },
+                    { en: "expense", vi: "chi tiêu" },
+                    { en: "income source", vi: "nguồn thu nhập" },
+                    { en: "financial independence", vi: "độc lập tài chính" },
+                    { en: "cost of living", vi: "chi phí sinh hoạt" },
+                    { en: "economic growth", vi: "tăng trưởng kinh tế" },
+                    { en: "inflation", vi: "lạm phát" },
+                    { en: "interest rate", vi: "lãi suất" },
+                    { en: "personal finance", vi: "tài chính cá nhân" },
+                    { en: "budget planning", vi: "lập kế hoạch ngân sách" },
+                    { en: "emergency fund", vi: "quỹ khẩn cấp" },
+                    { en: "consumerism", vi: "chủ nghĩa tiêu dùng" },
+                    { en: "financial security", vi: "an ninh tài chính" },
+                    { en: "salary", vi: "lương" },
+                    { en: "bonus", vi: "tiền thưởng" },
+                    { en: "retirement savings", vi: "tiết kiệm hưu trí" },
+                    { en: "financial goals", vi: "mục tiêu tài chính" },
+                    { en: "spending habits", vi: "thói quen chi tiêu" }
+                ]
+            },
+            health: {
+                title: "6. Health",
+                icon: "❤️",
+                items: [
+                    { en: "exercise habits", vi: "thói quen tập thể dục" },
+                    { en: "understanding", vi: "sự hiểu biết" },
+                    { en: "daily routines", vi: "thói quen hằng ngày" },
+                    { en: "the priority over health", vi: "ưu tiên cho sức khỏe" },
+                    { en: "nutritious dishes", vi: "món ăn giàu dinh dưỡng" },
+                    { en: "healthcare services", vi: "dịch vụ chăm sóc sức khỏe" },
+                    { en: "unhealthy routines", vi: "thói quen không lành mạnh" },
+                    { en: "physical and mental health", vi: "sức khỏe thể chất và tinh thần" },
+                    { en: "prevention", vi: "sự phòng ngừa" },
+                    { en: "a healthy lifestyle", vi: "lối sống lành mạnh" },
+                    { en: "the endurance", vi: "sức bền" },
+                    { en: "toxic habits", vi: "thói quen độc hại" },
+                    { en: "schemes to protect health", vi: "kế hoạch bảo vệ sức khỏe" },
+                    { en: "energy", vi: "năng lượng" },
+                    { en: "balanced diet", vi: "chế độ ăn cân bằng" },
+                    { en: "regular exercise", vi: "tập thể dục đều đặn" },
+                    { en: "mental health", vi: "sức khỏe tinh thần" },
+                    { en: "stress management", vi: "quản lý stress" },
+                    { en: "sleep quality", vi: "chất lượng giấc ngủ" },
+                    { en: "immune system", vi: "hệ miễn dịch" },
+                    { en: "chronic disease", vi: "bệnh mãn tính" },
+                    { en: "healthy habits", vi: "thói quen lành mạnh" },
+                    { en: "medical check-up", vi: "khám sức khỏe định kỳ" },
+                    { en: "nutrition", vi: "dinh dưỡng" },
+                    { en: "physical activity", vi: "hoạt động thể chất" },
+                    { en: "well-being", vi: "sự khỏe mạnh" },
+                    { en: "sedentary lifestyle", vi: "lối sống ít vận động" },
+                    { en: "junk food", vi: "đồ ăn kém dinh dưỡng" },
+                    { en: "hydration", vi: "cung cấp nước cho cơ thể" },
+                    { en: "recovery", vi: "sự phục hồi" },
+                    { en: "fitness", vi: "thể lực" },
+                    { en: "health awareness", vi: "nhận thức về sức khỏe" },
+                    { en: "preventive care", vi: "chăm sóc phòng ngừa" },
+                    { en: "work-related stress", vi: "stress do công việc" }
+                ]
+            }
+        };
+
+        const TOPIC_ORDER = ["verbs", "education", "entertainment", "working", "environment", "finance", "health"];
+
+        /* ===================== HELPERS ===================== */
+        function shuffle(a) {
+            const arr = [...a];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+        function pickDistractors(item, pool, n = 3) {
+            return shuffle(pool.filter(x => x.en !== item.en)).slice(0, n);
+        }
+        function buildQuestions(key) {
+            const items = DATA[key].items;
+            const qs = [];
+            // EN→VI x2 rounds
+            for (let r = 0; r < 2; r++) {
+                shuffle(items).forEach(it => {
+                    const dist = pickDistractors(it, items, 3);
+                    qs.push({
+                        type: "en2vi",
+                        q: `Từ <strong>"${it.en}"</strong> nghĩa là gì?`,
+                        options: shuffle([
+                            { text: it.vi, correct: true },
+                            ...dist.map(d => ({ text: d.vi, correct: false }))
+                        ]),
+                        answer: it.vi
+                    });
+                });
+            }
+            // VI→EN x2 rounds
+            for (let r = 0; r < 2; r++) {
+                shuffle(items).forEach(it => {
+                    const dist = pickDistractors(it, items, 3);
+                    qs.push({
+                        type: "vi2en",
+                        q: `<strong>"${it.vi}"</strong> tương ứng từ nào?`,
+                        options: shuffle([
+                            { text: it.en, correct: true },
+                            ...dist.map(d => ({ text: d.en, correct: false }))
+                        ]),
+                        answer: it.en
+                    });
+                });
+            }
+            return shuffle(qs).slice(0, 100);
+        }
+
+        /* ===================== STATE ===================== */
+        const state = {};
+        TOPIC_ORDER.forEach(k => {
+            state[k] = { questions: null, current: 0, answers: [], correct: 0 };
+        });
+        let currentTopic = null;
+
+        /* ===================== FULL DICT for search ===================== */
+        const FULL_DICT = [];
+        Object.values(DATA).forEach(t => t.items.forEach(it => FULL_DICT.push(it)));
+
+        /* ===================== HOME ===================== */
+        function renderHome() {
+            const list = document.getElementById("topicList");
+            list.innerHTML = TOPIC_ORDER.map(k => {
+                const t = DATA[k];
+                return `
+      <button class="topic-card" data-key="${k}">
+        <div class="icon">${t.icon}</div>
+        <div class="info">
+          <strong>${t.title}</strong>
+          <span>~100 câu · Anh ↔ Việt</span>
+        </div>
+        <div class="arrow">›</div>
+      </button>`;
+            }).join("");
+
+            list.querySelectorAll(".topic-card").forEach(btn => {
+                btn.addEventListener("click", () => openTopic(btn.dataset.key));
+            });
+        }
+
+        /* ===================== OPEN TOPIC ===================== */
+        function openTopic(key) {
+            currentTopic = key;
+            const st = state[key];
+            if (!st.questions) {
+                st.questions = buildQuestions(key);
+                st.answers = new Array(st.questions.length).fill(null);
+                st.current = 0;
+                st.correct = 0;
+            }
+            document.body.classList.add("quiz-mode");
+            document.getElementById("topicName").textContent = DATA[key].title;
+            document.getElementById("totalNum").textContent = st.questions.length;
+            document.getElementById("scoreNum").textContent = st.correct;
+            document.getElementById("searchInput").value = "";
+            document.getElementById("lookupDrop").classList.remove("show");
+            showQuestion();
+        }
+
+        function closeTopic() {
+            document.body.classList.remove("quiz-mode");
+            currentTopic = null;
+        }
+
+        /* ===================== SHOW QUESTION ===================== */
+        function showQuestion() {
+            const st = state[currentTopic];
+            const q = st.questions[st.current];
+            const ans = st.answers[st.current];
+            const letters = ["A", "B", "C", "D"];
+
+            let opts = q.options.map((op, i) => {
+                let cls = "opt";
+                if (ans !== null) {
+                    if (op.correct) cls += " correct";
+                    if (ans === i && !op.correct) cls += " wrong";
+                    if (ans === i) cls += " selected";
+                }
+                return `<div class="${cls}" data-i="${i}">
+      <span class="ltr">${letters[i]}</span>
+      <span class="txt">${op.text}</span>
+    </div>`;
+            }).join("");
+
+            let fb = "";
+            if (ans !== null) {
+                const ok = q.options[ans].correct;
+                fb = `<div class="fb show ${ok ? "ok" : "err"}">
+      ${ok ? "✅ Đúng!" : "❌ Sai. Đáp án: <strong>" + q.answer + "</strong>"}
+    </div>`;
+            }
+
+            document.getElementById("qArea").innerHTML = `
+    <div class="q-meta">Câu ${st.current + 1} · ${q.type === "en2vi" ? "Anh → Việt" : "Việt → Anh"}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="opts">${opts}</div>
+    ${fb}
+  `;
+
+            document.getElementById("qArea").querySelectorAll(".opt").forEach(el => {
+                el.addEventListener("click", () => selectOpt(+el.dataset.i));
+            });
+
+            document.getElementById("curNum").textContent = st.current + 1;
+            document.getElementById("progFill").style.width = ((st.current + 1) / st.questions.length * 100) + "%";
+            document.getElementById("scoreNum").textContent = st.correct;
+
+            document.getElementById("prevBtn").disabled = st.current === 0;
+            document.getElementById("nextBtn").disabled = st.current === st.questions.length - 1;
+
+            // scroll to top of question
+            document.getElementById("qArea").scrollTop = 0;
+        }
+
+        function selectOpt(i) {
+            const st = state[currentTopic];
+            if (st.answers[st.current] !== null) return;
+            st.answers[st.current] = i;
+            if (st.questions[st.current].options[i].correct) st.correct++;
+            showQuestion();
+        }
+
+        function prevQ() {
+            const st = state[currentTopic];
+            if (st.current > 0) { st.current--; showQuestion(); }
+        }
+        function nextQ() {
+            const st = state[currentTopic];
+            if (st.current < st.questions.length - 1) { st.current++; showQuestion(); }
+        }
+
+        function resetTopic() {
+            const st = state[currentTopic];
+            st.questions = buildQuestions(currentTopic);
+            st.answers = new Array(st.questions.length).fill(null);
+            st.current = 0;
+            st.correct = 0;
+            document.getElementById("resultOverlay").classList.remove("show");
+            showQuestion();
+        }
+
+        function showResult() {
+            const st = state[currentTopic];
+            const total = st.questions.length;
+            const pct = Math.round(st.correct / total * 100);
+            document.getElementById("resultScore").textContent = `${st.correct}/${total}`;
+            document.getElementById("resultMsg").textContent =
+                pct >= 85 ? "🎉 Xuất sắc! Bạn nắm rất vững." :
+                    pct >= 70 ? "👍 Tốt lắm! Xem lại vài câu sai nhé." :
+                        "💪 Cố lên! Tra nghĩa rồi làm lại.";
+            document.getElementById("resultOverlay").classList.add("show");
+        }
+
+        /* ===================== SEARCH ===================== */
+        const searchInput = document.getElementById("searchInput");
+        const lookupDrop = document.getElementById("lookupDrop");
+
+        searchInput.addEventListener("input", () => {
+            const val = searchInput.value.trim().toLowerCase();
+            if (!val) { lookupDrop.classList.remove("show"); return; }
+            const found = FULL_DICT.filter(it =>
+                it.en.toLowerCase().includes(val) || it.vi.toLowerCase().includes(val)
+            ).slice(0, 10);
+            if (!found.length) {
+                lookupDrop.innerHTML = `<div class="lookup-item"><div class="en">Không tìm thấy</div></div>`;
+            } else {
+                lookupDrop.innerHTML = found.map(it => `
+      <div class="lookup-item">
+        <div class="en">${it.en}</div>
+        <div class="vi">${it.vi}</div>
+      </div>`).join("");
+            }
+            lookupDrop.classList.add("show");
+        });
+        searchInput.addEventListener("focus", () => {
+            if (searchInput.value.trim()) searchInput.dispatchEvent(new Event("input"));
+        });
+        document.addEventListener("click", e => {
+            if (!e.target.closest(".search-wrap")) lookupDrop.classList.remove("show");
+        });
+
+        /* ===================== EVENTS ===================== */
+        document.getElementById("backBtn").addEventListener("click", closeTopic);
+        document.getElementById("prevBtn").addEventListener("click", prevQ);
+        document.getElementById("nextBtn").addEventListener("click", nextQ);
+        document.getElementById("checkBtn").addEventListener("click", showResult);
+        document.getElementById("resetBtn").addEventListener("click", resetTopic);
+        document.getElementById("resultClose").addEventListener("click", () => {
+            document.getElementById("resultOverlay").classList.remove("show");
+        });
+        document.getElementById("resultRetry").addEventListener("click", resetTopic);
+
+        // Swipe support (optional light)
+        let touchX = 0;
+        document.getElementById("qArea").addEventListener("touchstart", e => {
+            touchX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        document.getElementById("qArea").addEventListener("touchend", e => {
+            const dx = e.changedTouches[0].screenX - touchX;
+            if (Math.abs(dx) > 60) {
+                if (dx < 0) nextQ();
+                else prevQ();
+            }
+        }, { passive: true });
+
+        /* ===================== INIT ===================== */
+        renderHome();
+    </script>
+</body>
+
+</html>
