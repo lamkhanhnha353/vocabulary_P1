@@ -632,6 +632,99 @@
             border-color: var(--primary);
         }
 
+        .q-num-btn.marked {
+            position: relative;
+        }
+
+        .q-num-btn.marked::after {
+            content: "★";
+            position: absolute;
+            top: -3px;
+            right: -2px;
+            font-size: 0.55rem;
+            color: #f59e0b;
+            line-height: 1;
+        }
+
+        .q-num-btn.marked.current::after {
+            color: #fde68a;
+        }
+
+        /* Mark button on question */
+        .q-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.45rem;
+            gap: 0.5rem;
+        }
+
+        .q-meta-row .q-meta {
+            margin-bottom: 0;
+        }
+
+        .mark-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+
+        .mark-btn:active {
+            transform: scale(0.96);
+        }
+
+        .mark-btn.on {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            color: #b45309;
+        }
+
+        .mark-btn .star {
+            font-size: 0.95rem;
+        }
+
+        /* Filter chips in grid panel */
+        .grid-filter {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .filter-chip.marked-filter.active {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
+        }
+
         /* Result overlay */
         .result-overlay {
             display: none;
@@ -749,6 +842,10 @@
         <div class="q-area" id="qArea"></div>
 
         <div class="q-grid-panel" id="qGridPanel">
+            <div class="grid-filter">
+                <button type="button" class="filter-chip active" data-filter="all">Tất cả</button>
+                <button type="button" class="filter-chip marked-filter" data-filter="marked">★ Đã đánh dấu</button>
+            </div>
             <div class="q-grid" id="qGrid"></div>
         </div>
 
@@ -1132,7 +1229,7 @@
         /* ===================== STATE ===================== */
         const state = {};
         TOPIC_ORDER.forEach(k => {
-            state[k] = { questions: null, current: 0, answers: [], correct: 0 };
+            state[k] = { questions: null, current: 0, answers: [], correct: 0, marked: [] };
         });
         let currentTopic = null;
 
@@ -1168,8 +1265,12 @@
             if (!st.questions) {
                 st.questions = buildQuestions(key);
                 st.answers = new Array(st.questions.length).fill(null);
+                st.marked = new Array(st.questions.length).fill(false);
                 st.current = 0;
                 st.correct = 0;
+            }
+            if (!st.marked || st.marked.length !== st.questions.length) {
+                st.marked = new Array(st.questions.length).fill(false);
             }
             document.body.classList.add("quiz-mode");
             document.getElementById("topicName").textContent = DATA[key].title;
@@ -1272,17 +1373,27 @@
     </div>`;
             }
 
+            const isMarked = st.marked[st.current];
             document.getElementById("qArea").innerHTML = `
-    <div class="q-meta">Câu ${st.current + 1} · ${q.type === "en2vi" ? "Anh → Việt" : "Việt → Anh"}</div>
+    <div class="q-meta-row">
+      <div class="q-meta">Câu ${st.current + 1} · ${q.type === "en2vi" ? "Anh → Việt" : "Việt → Anh"}</div>
+      <button type="button" class="mark-btn ${isMarked ? "on" : ""}" id="markBtn" title="Đánh dấu xem lại">
+        <span class="star">${isMarked ? "★" : "☆"}</span>
+        <span>${isMarked ? "Đã đánh dấu" : "Đánh dấu"}</span>
+      </button>
+    </div>
     <div class="q-text">${qHtml}</div>
     <div class="opts">${opts}</div>
     ${fb}
   `;
 
+            // Mark button
+            document.getElementById("markBtn").addEventListener("click", () => toggleMark());
+
             // Option click
             document.getElementById("qArea").querySelectorAll(".opt").forEach(el => {
                 el.addEventListener("click", (e) => {
-                    if (e.target.closest(".speak-btn")) return; // don't select when clicking speaker
+                    if (e.target.closest(".speak-btn")) return;
                     selectOpt(+el.dataset.i);
                 });
             });
@@ -1306,7 +1417,15 @@
             updateQGrid();
         }
 
+        function toggleMark() {
+            const st = state[currentTopic];
+            st.marked[st.current] = !st.marked[st.current];
+            showQuestion();
+        }
+
         /* ===================== QUESTION GRID ===================== */
+        let gridFilter = "all"; // "all" | "marked"
+
         function buildQGrid() {
             const st = state[currentTopic];
             const grid = document.getElementById("qGrid");
@@ -1319,6 +1438,17 @@
                     jumpToQ(+btn.dataset.idx);
                 });
             });
+            // filter chips
+            document.querySelectorAll(".filter-chip").forEach(chip => {
+                chip.classList.toggle("active", chip.dataset.filter === gridFilter);
+                chip.onclick = () => {
+                    gridFilter = chip.dataset.filter;
+                    document.querySelectorAll(".filter-chip").forEach(c =>
+                        c.classList.toggle("active", c.dataset.filter === gridFilter)
+                    );
+                    updateQGrid();
+                };
+            });
             updateQGrid();
         }
 
@@ -1327,11 +1457,18 @@
             if (!st || !st.questions) return;
             document.querySelectorAll("#qGrid .q-num-btn").forEach(btn => {
                 const i = +btn.dataset.idx;
-                btn.classList.remove("current", "answered", "wrong");
+                btn.classList.remove("current", "answered", "wrong", "marked");
                 if (i === st.current) btn.classList.add("current");
                 if (st.answers[i] !== null) {
                     const ok = st.questions[i].options[st.answers[i]].correct;
                     btn.classList.add(ok ? "answered" : "wrong");
+                }
+                if (st.marked[i]) btn.classList.add("marked");
+                // filter visibility
+                if (gridFilter === "marked") {
+                    btn.style.display = st.marked[i] ? "" : "none";
+                } else {
+                    btn.style.display = "";
                 }
             });
         }
@@ -1380,8 +1517,10 @@
             const st = state[currentTopic];
             st.questions = buildQuestions(currentTopic);
             st.answers = new Array(st.questions.length).fill(null);
+            st.marked = new Array(st.questions.length).fill(false);
             st.current = 0;
             st.correct = 0;
+            gridFilter = "all";
             document.getElementById("resultOverlay").classList.remove("show");
             if (document.getElementById("qGridPanel").classList.contains("show")) {
                 buildQGrid();
