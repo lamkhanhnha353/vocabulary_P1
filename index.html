@@ -379,6 +379,11 @@
             font-size: 0.98rem;
         }
 
+        .opt .speak-btn {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
         .fb {
             margin-top: 0.85rem;
             padding: 0.65rem 0.9rem;
@@ -399,6 +404,71 @@
         .fb.err {
             background: #fee2e2;
             color: #991b1b;
+        }
+
+        /* Speaker / TTS button */
+        .speak-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: #dbeafe;
+            color: var(--primary);
+            font-size: 1rem;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-left: 0.35rem;
+            flex-shrink: 0;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .speak-btn:active {
+            transform: scale(0.92);
+            background: #bfdbfe;
+        }
+
+        .speak-btn.speaking {
+            background: var(--primary);
+            color: white;
+            animation: pulse 0.8s ease infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        .q-text .speak-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+        }
+
+        .lookup-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lookup-item .lookup-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .lookup-item .speak-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.95rem;
         }
 
         /* Bottom nav: arrows */
@@ -1021,8 +1091,41 @@
         }
 
         function closeTopic() {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
             document.body.classList.remove("quiz-mode");
             currentTopic = null;
+        }
+
+        /* ===================== TTS / PHÁT ÂM ===================== */
+        function speak(text, btn) {
+            if (!window.speechSynthesis) {
+                alert("Trình duyệt không hỗ trợ đọc phát âm.");
+                return;
+            }
+            // Stop any ongoing speech
+            window.speechSynthesis.cancel();
+
+            // Clean text: remove HTML tags if any, keep only English-ish content
+            const clean = String(text).replace(/<[^>]+>/g, "").trim();
+            if (!clean) return;
+
+            const utter = new SpeechSynthesisUtterance(clean);
+            utter.lang = "en-US";
+            utter.rate = 0.9;
+            utter.pitch = 1;
+
+            if (btn) {
+                btn.classList.add("speaking");
+                utter.onend = () => btn.classList.remove("speaking");
+                utter.onerror = () => btn.classList.remove("speaking");
+            }
+            window.speechSynthesis.speak(utter);
+        }
+
+        /* Extract English word from question for EN→VI */
+        function extractEnFromQuestion(qHtml) {
+            const m = qHtml.match(/"([^"]+)"/);
+            return m ? m[1] : "";
         }
 
         /* ===================== SHOW QUESTION ===================== */
@@ -1032,6 +1135,16 @@
             const ans = st.answers[st.current];
             const letters = ["A", "B", "C", "D"];
 
+            // Build question text with speaker for EN→VI
+            let qHtml;
+            if (q.type === "en2vi") {
+                const enWord = extractEnFromQuestion(q.q);
+                qHtml = `Từ <strong>"${enWord}"</strong> <button type="button" class="speak-btn" data-speak="${enWord.replace(/"/g, "&quot;")}" title="Nghe phát âm">🔊</button> nghĩa là gì?`;
+            } else {
+                // VI→EN – speaker on each English option
+                qHtml = q.q;
+            }
+
             let opts = q.options.map((op, i) => {
                 let cls = "opt";
                 if (ans !== null) {
@@ -1039,29 +1152,52 @@
                     if (ans === i && !op.correct) cls += " wrong";
                     if (ans === i) cls += " selected";
                 }
+                // Add speaker only for English options (VI→EN) or always for English-looking text
+                const isEnglish = q.type === "vi2en" || /^[a-zA-Z0-9\s\-\/,.']+$/.test(op.text);
+                const speakBtn = isEnglish
+                    ? `<button type="button" class="speak-btn" data-speak="${op.text.replace(/"/g, "&quot;")}" title="Nghe phát âm" onclick="event.stopPropagation()">🔊</button>`
+                    : "";
                 return `<div class="${cls}" data-i="${i}">
       <span class="ltr">${letters[i]}</span>
       <span class="txt">${op.text}</span>
+      ${speakBtn}
     </div>`;
             }).join("");
 
             let fb = "";
             if (ans !== null) {
                 const ok = q.options[ans].correct;
+                // If answer is English, add speaker
+                const ansIsEn = q.type === "vi2en" || /^[a-zA-Z]/.test(q.answer);
+                const ansSpeak = ansIsEn
+                    ? ` <button type="button" class="speak-btn" data-speak="${q.answer.replace(/"/g, "&quot;")}" title="Nghe phát âm">🔊</button>`
+                    : "";
                 fb = `<div class="fb show ${ok ? "ok" : "err"}">
-      ${ok ? "✅ Đúng!" : "❌ Sai. Đáp án: <strong>" + q.answer + "</strong>"}
+      ${ok ? "✅ Đúng!" : "❌ Sai. Đáp án: <strong>" + q.answer + "</strong>"}${ansSpeak}
     </div>`;
             }
 
             document.getElementById("qArea").innerHTML = `
     <div class="q-meta">Câu ${st.current + 1} · ${q.type === "en2vi" ? "Anh → Việt" : "Việt → Anh"}</div>
-    <div class="q-text">${q.q}</div>
+    <div class="q-text">${qHtml}</div>
     <div class="opts">${opts}</div>
     ${fb}
   `;
 
+            // Option click
             document.getElementById("qArea").querySelectorAll(".opt").forEach(el => {
-                el.addEventListener("click", () => selectOpt(+el.dataset.i));
+                el.addEventListener("click", (e) => {
+                    if (e.target.closest(".speak-btn")) return; // don't select when clicking speaker
+                    selectOpt(+el.dataset.i);
+                });
+            });
+
+            // All speak buttons in this question
+            document.getElementById("qArea").querySelectorAll(".speak-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    speak(btn.dataset.speak, btn);
+                });
             });
 
             document.getElementById("curNum").textContent = st.current + 1;
@@ -1071,7 +1207,6 @@
             document.getElementById("prevBtn").disabled = st.current === 0;
             document.getElementById("nextBtn").disabled = st.current === st.questions.length - 1;
 
-            // scroll to top of question
             document.getElementById("qArea").scrollTop = 0;
         }
 
@@ -1084,10 +1219,12 @@
         }
 
         function prevQ() {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
             const st = state[currentTopic];
             if (st.current > 0) { st.current--; showQuestion(); }
         }
         function nextQ() {
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
             const st = state[currentTopic];
             if (st.current < st.questions.length - 1) { st.current++; showQuestion(); }
         }
@@ -1125,13 +1262,22 @@
                 it.en.toLowerCase().includes(val) || it.vi.toLowerCase().includes(val)
             ).slice(0, 10);
             if (!found.length) {
-                lookupDrop.innerHTML = `<div class="lookup-item"><div class="en">Không tìm thấy</div></div>`;
+                lookupDrop.innerHTML = `<div class="lookup-item"><div class="lookup-text"><div class="en">Không tìm thấy</div></div></div>`;
             } else {
                 lookupDrop.innerHTML = found.map(it => `
       <div class="lookup-item">
-        <div class="en">${it.en}</div>
-        <div class="vi">${it.vi}</div>
+        <div class="lookup-text">
+          <div class="en">${it.en}</div>
+          <div class="vi">${it.vi}</div>
+        </div>
+        <button type="button" class="speak-btn" data-speak="${it.en.replace(/"/g, "&quot;")}" title="Nghe phát âm">🔊</button>
       </div>`).join("");
+                lookupDrop.querySelectorAll(".speak-btn").forEach(btn => {
+                    btn.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        speak(btn.dataset.speak, btn);
+                    });
+                });
             }
             lookupDrop.classList.add("show");
         });
